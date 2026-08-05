@@ -72,7 +72,7 @@ var PROJECTS = [
   {
     title: "Tech Farm",
     client: "Aurum Studio",
-    year: "2023",
+     href: "https://tech-farm-kappa.vercel.app/",
     d: "Creative direction for a product launch across digital, motion, and environmental touchpoints.",
     img: "techfarm.png",
     tech: ["Next js", "Supabase", "vercel", "Tailwind CSS"],
@@ -347,6 +347,7 @@ function renderProjects() {
     var viewLink = document.createElement("a");
     viewLink.className = "project-card__action";
     viewLink.href = "https://tech-farm-kappa.vercel.app/";
+    viewLink.href = e.href || "https://tech-farm-kappa.vercel.app/";
     viewLink.setAttribute("aria-label", "View project");
     var viewIcon = document.createElement("span");
     viewIcon.className = "project-card__action-icon";
