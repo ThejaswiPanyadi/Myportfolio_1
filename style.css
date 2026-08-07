@@ -1064,3 +1064,219 @@ ul {
     transition: none;
   }
 }
+
+/* ============================================================
+   9. Premium Intro Loader
+   ============================================================ */
+
+/* Scroll lock while loading */
+body.is-loading {
+  overflow: hidden !important;
+}
+
+/* --- Loader overlay --- */
+.intro-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  will-change: transform;
+}
+
+.intro-loader__content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  width: 90%;
+  max-width: 320px;
+}
+
+/* Name */
+.intro-loader__name {
+  margin: 0;
+  font-family: "Inter", sans-serif;
+  font-size: 1.375rem;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  color: #fff;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.8s cubic-bezier(0.25, 1, 0.5, 1) 0.12s,
+              transform 0.8s cubic-bezier(0.25, 1, 0.5, 1) 0.12s;
+}
+
+.intro-loader__name.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Tagline */
+.intro-loader__tagline {
+  margin: 0;
+  font-family: "Inter", sans-serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.35);
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.8s cubic-bezier(0.25, 1, 0.5, 1) 0.24s,
+              transform 0.8s cubic-bezier(0.25, 1, 0.5, 1) 0.24s;
+}
+
+.intro-loader__tagline.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Loading bar wrap */
+.intro-loader__bar-wrap {
+  width: 100%;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.08);
+  margin-top: 0.75rem;
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity 0.8s cubic-bezier(0.25, 1, 0.5, 1) 0.36s;
+}
+
+.intro-loader__bar-wrap.is-visible {
+  opacity: 1;
+}
+
+/* Loading bar fill */
+.intro-loader__bar {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, rgba(255,255,255,0.5), rgba(255,255,255,0.9));
+  transition: width 0.05s linear;
+}
+
+/* Percentage counter */
+.intro-loader__percent {
+  font-family: "Inter", sans-serif;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.35em;
+  color: rgba(255, 255, 255, 0.25);
+  font-variant-numeric: tabular-nums;
+  opacity: 0;
+  transition: opacity 0.8s cubic-bezier(0.25, 1, 0.5, 1) 0.36s;
+}
+
+.intro-loader__percent.is-visible {
+  opacity: 1;
+}
+
+/* Bottom-right Signature */
+.intro-loader__signature {
+  position: absolute;
+  bottom: 2rem;
+  right: 2.5rem;
+  max-width: 180px;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.8s cubic-bezier(0.25, 1, 0.5, 1) 0.3s,
+              transform 0.8s cubic-bezier(0.25, 1, 0.5, 1) 0.3s;
+}
+
+.intro-loader__signature.is-visible {
+  opacity: 0.85;
+  transform: translateY(0);
+}
+
+.intro-loader__signature-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  mix-blend-mode: screen;
+}
+
+@media (max-width: 768px) {
+  .intro-loader__signature {
+    bottom: 1.25rem;
+    right: 1.25rem;
+    max-width: 130px;
+  }
+}
+
+/* --- Fade out individual elements --- */
+.intro-loader__name.is-fading,
+.intro-loader__tagline.is-fading,
+.intro-loader__bar-wrap.is-fading,
+.intro-loader__percent.is-fading,
+.intro-loader__signature.is-fading {
+  opacity: 0 !important;
+  transform: translateY(-8px) !important;
+  transition: opacity 0.5s cubic-bezier(0.25, 1, 0.5, 1),
+              transform 0.5s cubic-bezier(0.25, 1, 0.5, 1) !important;
+}
+
+/* --- Slide up entire loader --- */
+.intro-loader.is-exiting {
+  animation: loader-slide-up 0.9s cubic-bezier(0.76, 0, 0.24, 1) forwards;
+}
+
+@keyframes loader-slide-up {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-100%);
+  }
+}
+
+/* ============================================================
+   10. Staggered Hero Reveal (after loader)
+   ============================================================ */
+
+/* While loading, hide all hero entrance elements and the navbar */
+body.is-loading .site-nav {
+  opacity: 0;
+  transform: translateY(-20px);
+}
+
+body.is-loading .reveal {
+  animation: none !important;
+  opacity: 0 !important;
+  transform: translateY(18px) !important;
+}
+
+/* After loader: animate elements in */
+body.is-loaded .site-nav {
+  animation: hero-fade-down 0.9s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+  animation-delay: 0ms;
+}
+
+@keyframes hero-fade-down {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+body.is-loaded .reveal {
+  animation: hero-stagger-up 1s cubic-bezier(0.25, 1, 0.5, 1) forwards !important;
+  animation-delay: var(--loader-d, 0ms) !important;
+}
+
+@keyframes hero-stagger-up {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}

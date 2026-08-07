@@ -535,6 +535,127 @@ function initYear() {
   if (el) el.textContent = "© " + new Date().getFullYear();
 }
 
+/* ---------- 7. Intro Loader ---------- */
+function initIntroLoader() {
+  var loader      = document.getElementById("intro-loader");
+  var name        = document.getElementById("loader-name");
+  var tagline     = document.getElementById("loader-tagline");
+  var barWrap     = document.getElementById("loader-bar-wrap");
+  var bar         = document.getElementById("loader-bar");
+  var percentEl   = document.getElementById("loader-percent");
+  var signature   = document.getElementById("loader-signature");
+
+  if (!loader) return;
+
+  // Step 1: Hero is briefly visible for ~400ms, then loader fades in over it
+  // (The loader starts as display:flex with black bg, but we make it transparent first)
+  loader.style.background = "transparent";
+  
+  setTimeout(function () {
+    // Step 2: Transition to black loading screen
+    loader.style.transition = "background 0.5s cubic-bezier(0.25, 1, 0.5, 1)";
+    loader.style.background = "#000";
+    
+    // Step 3: After background is black, reveal loader elements with stagger
+    setTimeout(function () {
+      name.classList.add("is-visible");
+      tagline.classList.add("is-visible");
+      barWrap.classList.add("is-visible");
+      percentEl.classList.add("is-visible");
+      if (signature) signature.classList.add("is-visible");
+
+      // Start the loading counter after elements are visible
+      setTimeout(function () {
+        startLoadingAnimation();
+      }, 500);
+    }, 500);
+  }, 400);
+
+  function startLoadingAnimation() {
+    var duration = 2200; // total time for 0 → 100
+    var startTime = null;
+
+    function easeOutQuart(t) {
+      return 1 - Math.pow(1 - t, 4);
+    }
+
+    function tick(timestamp) {
+      if (!startTime) startTime = timestamp;
+      var elapsed = timestamp - startTime;
+      var rawProgress = Math.min(elapsed / duration, 1);
+      var easedProgress = easeOutQuart(rawProgress);
+      var value = Math.round(easedProgress * 100);
+
+      // Pad to 3 digits
+      var display = String(value);
+      while (display.length < 3) display = "0" + display;
+
+      percentEl.textContent = display;
+      bar.style.width = value + "%";
+
+      if (rawProgress < 1) {
+        requestAnimationFrame(tick);
+      } else {
+        // Step 4: Loading complete — fade out elements
+        onLoadingComplete();
+      }
+    }
+
+    requestAnimationFrame(tick);
+  }
+
+  function onLoadingComplete() {
+    // Brief pause at 100%
+    setTimeout(function () {
+      // Step 4: Staggered fade out of loader content
+      name.classList.add("is-fading");
+      
+      setTimeout(function () {
+        tagline.classList.add("is-fading");
+      }, 60);
+
+      setTimeout(function () {
+        barWrap.classList.add("is-fading");
+        percentEl.classList.add("is-fading");
+        if (signature) signature.classList.add("is-fading");
+      }, 120);
+
+      // Step 5: After elements have faded, slide the whole loader up
+      setTimeout(function () {
+        loader.classList.add("is-exiting");
+
+        // Step 6: While loader slides, prep hero reveal
+        setTimeout(function () {
+          revealHero();
+        }, 200);
+
+        // Remove loader from DOM after animation completes
+        setTimeout(function () {
+          loader.style.display = "none";
+        }, 1000);
+      }, 600);
+    }, 300);
+  }
+
+  function revealHero() {
+    // Assign stagger delays to .reveal elements
+    var reveals = document.querySelectorAll(".reveal");
+    reveals.forEach(function (el, i) {
+      el.style.setProperty("--loader-d", (120 + i * 100) + "ms");
+    });
+
+    // Switch body class to trigger CSS animations
+    document.body.classList.remove("is-loading");
+    document.body.classList.add("is-loaded");
+
+    // Re-enable scrolling after hero animations are done
+    var totalRevealTime = 120 + reveals.length * 100 + 1000;
+    setTimeout(function () {
+      document.body.style.overflow = "";
+    }, totalRevealTime);
+  }
+}
+
 /* ---------- Boot ---------- */
 document.addEventListener("DOMContentLoaded", function () {
   initNav();
@@ -547,6 +668,7 @@ document.addEventListener("DOMContentLoaded", function () {
   initReveal();
   initYear();
   initTheme();
+  initIntroLoader();
 });
 
 /* ---------- Theme (light / dark) ---------- */
