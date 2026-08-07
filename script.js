@@ -536,6 +536,95 @@ function initYear() {
 }
 
 /* ---------- Boot ---------- */
+
+// small easing (calm, no spring)
+function _easeInOutCubic(t) {
+  return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+}
+
+function _animateProgress(duration, onUpdate) {
+  return new Promise(function (resolve) {
+    var start = performance.now();
+    function frame(now) {
+      var elapsed = now - start;
+      var t = Math.min(1, elapsed / duration);
+      var eased = _easeInOutCubic(t);
+      var val = Math.round(eased * 100);
+      onUpdate && onUpdate(val, eased);
+      if (t < 1) requestAnimationFrame(frame);
+      else resolve();
+    }
+    requestAnimationFrame(frame);
+  });
+}
+
+function startLoaderSequence() {
+  var loader = document.getElementById("premium-loader");
+  if (!loader) {
+    // nothing to do — reveal the site
+    document.documentElement.classList.add("loader-finished");
+    return;
+  }
+
+  // ensure body locked while loader runs
+  document.body.classList.add("pf-loading-active");
+
+  // show loader overlay (fade in)
+  requestAnimationFrame(function () {
+    loader.classList.add("pf-loader--visible");
+  });
+
+  // Animate progress (smooth, no jumps)
+  // duration tuned to feel cinematic and not too long
+  var progressDuration = 1800; // ms
+
+  _animateProgress(progressDuration, function (p) {
+    var pct = String(p).padStart(3, "0");
+    var fill = loader.querySelector(".pf-loader__bar-fill");
+    var pctEl = loader.querySelector(".pf-loader__percent");
+    if (fill) fill.style.transform = "scaleX(" + p / 100 + ")";
+    if (pctEl) pctEl.textContent = pct;
+  }).then(function () {
+    // small settle before fading pieces
+    loader.classList.add("pf-loader--done");
+
+    // after pieces fade, slide the whole loader upward
+    window.setTimeout(function () {
+      loader.classList.add("pf-loader--slide");
+
+      // re-enable original reveal animations by adding this class to <html>
+      document.documentElement.classList.add("loader-finished");
+
+      // compute how long to wait before enabling scroll: base reveal animation (1100ms) + max delay (--d)
+      var reveals = Array.prototype.slice.call(document.querySelectorAll('.reveal'));
+      var maxDelay = 0;
+      reveals.forEach(function (el) {
+        var d = getComputedStyle(el).getPropertyValue("--d") || "0ms";
+        var ms = 0;
+        if (d.indexOf('ms') !== -1) ms = parseFloat(d);
+        else if (d.indexOf('s') !== -1) ms = parseFloat(d) * 1000;
+        else ms = parseFloat(d) || 0;
+        if (ms > maxDelay) maxDelay = ms;
+      });
+
+      var revealAnim = 1100; // matches .reveal animation duration in CSS
+      var totalWait = Math.round(maxDelay + revealAnim + 120);
+
+      // After the reveal sequence completes, remove loader and allow scrolling
+      window.setTimeout(function () {
+        document.body.classList.remove("pf-loading-active");
+
+        // remove loader node after a short delay so the slide transition finishes
+        window.setTimeout(function () {
+          try { loader.remove(); } catch (e) {}
+        }, 420);
+      }, totalWait);
+    }, 420);
+  });
+}
+
+// Initialize site modules immediately (structure & observers), but keep entrance
+// animations paused until the loader completes (CSS handles the pause).
 document.addEventListener("DOMContentLoaded", function () {
   initNav();
   initHeroMeta();
@@ -547,6 +636,12 @@ document.addEventListener("DOMContentLoaded", function () {
   initReveal();
   initYear();
   initTheme();
+
+  // Briefly show the finished hero (300-500ms) then reveal the fullscreen loader.
+  // 400ms is chosen as a balanced value.
+  window.setTimeout(function () {
+    startLoaderSequence();
+  }, 400);
 });
 
 /* ---------- Theme (light / dark) ---------- */
