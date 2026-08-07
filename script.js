@@ -536,6 +536,74 @@ function initYear() {
 }
 
 /* ---------- Boot ---------- */
+function easeInOutCubic(t) {
+  return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+}
+
+function animateLoaderProgress(duration, onFrame) {
+  return new Promise(function (resolve) {
+    var start = performance.now();
+
+    function frame(now) {
+      var elapsed = now - start;
+      var t = Math.min(1, elapsed / duration);
+      var eased = easeInOutCubic(t);
+      onFrame && onFrame(eased, t);
+
+      if (t < 1) {
+        requestAnimationFrame(frame);
+      } else {
+        resolve();
+      }
+    }
+
+    requestAnimationFrame(frame);
+  });
+}
+
+function startLoaderSequence() {
+  var loader = document.getElementById("premium-loader");
+  if (!loader) {
+    document.documentElement.classList.add("loader-finished");
+    return;
+  }
+
+  document.body.classList.add("pf-loading-active");
+  requestAnimationFrame(function () {
+    loader.classList.add("pf-loader--visible");
+  });
+
+  var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var progressDuration = reduceMotion ? 900 : 1800;
+  var fadeDuration = reduceMotion ? 220 : 420;
+  var slideDuration = reduceMotion ? 220 : 900;
+
+  animateLoaderProgress(progressDuration, function (eased) {
+    var value = Math.round(eased * 100);
+    var fill = loader.querySelector(".pf-loader__bar-fill");
+    var percent = loader.querySelector(".pf-loader__percent");
+
+    if (fill) fill.style.transform = "scaleX(" + eased + ")";
+    if (percent) percent.textContent = String(value).padStart(3, "0");
+  }).then(function () {
+    loader.classList.add("pf-loader--done");
+
+    window.setTimeout(function () {
+      loader.classList.add("pf-loader--slide");
+      document.documentElement.classList.add("loader-finished");
+
+      window.setTimeout(function () {
+        document.body.classList.remove("pf-loading-active");
+        window.setTimeout(function () {
+          try {
+            loader.remove();
+          } catch (e) {}
+        }, 220);
+      }, Math.max(1100, slideDuration + fadeDuration + 220));
+    }, fadeDuration);
+  });
+}
+
 document.addEventListener("DOMContentLoaded", function () {
   initNav();
   initHeroMeta();
@@ -547,6 +615,10 @@ document.addEventListener("DOMContentLoaded", function () {
   initReveal();
   initYear();
   initTheme();
+
+  window.setTimeout(function () {
+    startLoaderSequence();
+  }, 400);
 });
 
 /* ---------- Theme (light / dark) ---------- */
